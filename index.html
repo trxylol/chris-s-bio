@@ -368,27 +368,6 @@ p {
                      0 0 50px #00ff00;
     }
 }
-
-/* Add these styles to handle the audio player visualization */
-.audio-controls {
-    color: #00ff00;
-    margin-top: 10px;
-    font-family: 'Courier New', monospace;
-}
-
-.audio-progress {
-    width: 100%;
-    height: 4px;
-    background-color: #003300;
-    margin: 5px 0;
-}
-
-.audio-progress-bar {
-    height: 100%;
-    background-color: #00ff00;
-    width: 0%;
-    transition: width 0.1s linear;
-}
 </style>
 </head>
 <body>
@@ -591,7 +570,7 @@ function setupCommandInput(inputElement) {
             
             switch(command.toLowerCase()) {
                 case 'help':
-                    responseDiv.textContent = 'Available commands: help, clear, date, echo, whoami, website, socials, play, pause, stop';
+                    responseDiv.textContent = 'Available commands: help, clear, date, echo, whoami, website, socials';
                     break;
                 case 'clear':
                     terminalContent.innerHTML = '';
@@ -611,76 +590,9 @@ function setupCommandInput(inputElement) {
                         '<a href="https://youtube.com/reachchrisyoung" target="_blank" class="website-link">YouTube</a><br>' +
                         '<a href="https://github.com/reachchrisyoung" target="_blank" class="website-link">GitHub</a>';
                     break;
-                case 'play':
-                    let audioPlayer = document.getElementById('audio-player');
-                    if (!audioPlayer) {
-                        audioPlayer = document.createElement('audio');
-                        audioPlayer.id = 'audio-player';
-                        audioPlayer.controls = true;
-                        audioPlayer.style.display = 'none';
-                        audioPlayer.src = 'https://api.fabdl.com/spotify/download-mp3/e65420afe2705892047451ef0e50b71a';
-                        document.body.appendChild(audioPlayer);
-                    }
-                    audioPlayer.play();
-                    responseDiv.textContent = 'Playing audio...';
-                    
-                    // Add audio controls visualization
-                    const audioControls = document.createElement('div');
-                    audioControls.className = 'audio-controls';
-                    audioControls.innerHTML = `
-                        <div>Now Playing: Background Music</div>
-                        <div class="audio-progress">
-                            <div class="audio-progress-bar"></div>
-                        </div>
-                    `;
-                    responseDiv.appendChild(audioControls);
-                    
-                    // Update progress bar
-                    const progressBar = audioControls.querySelector('.audio-progress-bar');
-                    audioPlayer.addEventListener('timeupdate', () => {
-                        const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-                        progressBar.style.width = progress + '%';
-                    });
-                    break;
-                case 'pause':
-                    const player = document.getElementById('audio-player');
-                    if (player) {
-                        player.pause();
-                        responseDiv.textContent = 'Audio paused.';
-                    } else {
-                        responseDiv.textContent = 'No audio player found.';
-                    }
-                    break;
-                case 'stop':
-                    const stopPlayer = document.getElementById('audio-player');
-                    if (stopPlayer) {
-                        stopPlayer.pause();
-                        stopPlayer.currentTime = 0;
-                        responseDiv.textContent = 'Audio stopped.';
-                    } else {
-                        responseDiv.textContent = 'No audio player found.';
-                    }
-                    break;
                 default:
                     if (command.startsWith('echo ')) {
                         responseDiv.textContent = command.slice(5);
-                    } else if (command.startsWith('play ')) {
-                        const url = command.slice(5).trim();
-                        if (url.toLowerCase().endsWith('.mp3')) {
-                            let audioPlayer = document.getElementById('audio-player');
-                            if (!audioPlayer) {
-                                audioPlayer = document.createElement('audio');
-                                audioPlayer.id = 'audio-player';
-                                audioPlayer.controls = true;
-                                audioPlayer.style.display = 'none';
-                                document.body.appendChild(audioPlayer);
-                            }
-                            audioPlayer.src = url;
-                            audioPlayer.play();
-                            responseDiv.innerHTML = `Playing audio from: ${url}<br>Commands: play, pause, stop`;
-                        } else {
-                            responseDiv.textContent = 'Please provide a valid MP3 URL.';
-                        }
                     } else if (command !== '') {
                         responseDiv.textContent = `Command not found: ${command}`;
                     }
