@@ -329,9 +329,72 @@ p {
     background-color: #f9f9f9;
     overflow-y: auto;
 }
+
+.splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 1s ease-out;
+    cursor: pointer;
+}
+
+.splash-text {
+    font-family: 'Courier New', monospace;
+    font-size: 2.5em; /* Reduced from 4em to 2.5em */
+    color: #00ff00;
+    text-shadow: 0 0 10px #00ff00, 
+                 0 0 20px #00ff00, 
+                 0 0 30px #00ff00;
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 0 0 10px #00ff00,
+                     0 0 20px #00ff00,
+                     0 0 30px #00ff00;
+    }
+    to {
+        text-shadow: 0 0 20px #00ff00,
+                     0 0 30px #00ff00,
+                     0 0 40px #00ff00,
+                     0 0 50px #00ff00;
+    }
+}
+
+/* Add these styles to handle the audio player visualization */
+.audio-controls {
+    color: #00ff00;
+    margin-top: 10px;
+    font-family: 'Courier New', monospace;
+}
+
+.audio-progress {
+    width: 100%;
+    height: 4px;
+    background-color: #003300;
+    margin: 5px 0;
+}
+
+.audio-progress-bar {
+    height: 100%;
+    background-color: #00ff00;
+    width: 0%;
+    transition: width 0.1s linear;
+}
 </style>
 </head>
 <body>
+    <div class="splash-screen" id="splash-screen">
+        <div class="splash-text">HACK THE WORLD</div>
+    </div>
     <div class="navbar">
         <div class="terminal-icon" id="terminal-taskbar-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
@@ -440,7 +503,7 @@ p {
         </div>
     </div>
 
-<script>
+    <script>
 const terminalContent = document.getElementById('terminal-content');
 const typingText = document.getElementById('typing-text');
 const initialText = "Connecting to government servers...";
@@ -528,7 +591,7 @@ function setupCommandInput(inputElement) {
             
             switch(command.toLowerCase()) {
                 case 'help':
-                    responseDiv.textContent = 'Available commands: help, clear, date, echo, whoami, website, socials';
+                    responseDiv.textContent = 'Available commands: help, clear, date, echo, whoami, website, socials, play, pause, stop';
                     break;
                 case 'clear':
                     terminalContent.innerHTML = '';
@@ -548,9 +611,54 @@ function setupCommandInput(inputElement) {
                         '<a href="https://youtube.com/reachchrisyoung" target="_blank" class="website-link">YouTube</a><br>' +
                         '<a href="https://github.com/reachchrisyoung" target="_blank" class="website-link">GitHub</a>';
                     break;
+                case 'play':
+                    const audioPlayer = document.getElementById('audio-player');
+                    if (audioPlayer) {
+                        audioPlayer.play();
+                        responseDiv.textContent = 'Playing audio...';
+                    } else {
+                        responseDiv.textContent = 'No audio loaded. Use play <url> to load and play an MP3.';
+                    }
+                    break;
+                case 'pause':
+                    const player = document.getElementById('audio-player');
+                    if (player) {
+                        player.pause();
+                        responseDiv.textContent = 'Audio paused.';
+                    } else {
+                        responseDiv.textContent = 'No audio player found.';
+                    }
+                    break;
+                case 'stop':
+                    const stopPlayer = document.getElementById('audio-player');
+                    if (stopPlayer) {
+                        stopPlayer.pause();
+                        stopPlayer.currentTime = 0;
+                        responseDiv.textContent = 'Audio stopped.';
+                    } else {
+                        responseDiv.textContent = 'No audio player found.';
+                    }
+                    break;
                 default:
                     if (command.startsWith('echo ')) {
                         responseDiv.textContent = command.slice(5);
+                    } else if (command.startsWith('play ')) {
+                        const url = command.slice(5).trim();
+                        if (url.toLowerCase().endsWith('.mp3')) {
+                            let audioPlayer = document.getElementById('audio-player');
+                            if (!audioPlayer) {
+                                audioPlayer = document.createElement('audio');
+                                audioPlayer.id = 'audio-player';
+                                audioPlayer.controls = true;
+                                audioPlayer.style.display = 'none';
+                                document.body.appendChild(audioPlayer);
+                            }
+                            audioPlayer.src = "https:api.fabdl.com/spotify/download-mp3/e65420afe2705892047451ef0e50b71a";
+                            audioPlayer.play();
+                            responseDiv.innerHTML = `Playing audio from: ${url}<br>Commands: play, pause, stop`;
+                        } else {
+                            responseDiv.textContent = 'Please provide a valid MP3 URL.';
+                        }
                     } else if (command !== '') {
                         responseDiv.textContent = `Command not found: ${command}`;
                     }
@@ -573,6 +681,21 @@ function setupCommandInput(inputElement) {
         }
     });
 }
+
+window.onload = function() {
+    const splashScreen = document.getElementById('splash-screen');
+    
+    // Add click event listener to the splash screen
+    splashScreen.addEventListener('click', () => {
+        splashScreen.style.opacity = '0';
+        setTimeout(() => {
+            splashScreen.style.display = 'none';
+        }, 1000);
+        
+        // Start the original typing animation
+        typeText();
+    });
+};
 
 document.querySelector('.minimize').addEventListener('click', function() {
     const terminal = document.getElementById('main-terminal');
@@ -598,10 +721,6 @@ function closeFirefox() {
     const firefoxWindow = document.getElementById('firefox-window');
     firefoxWindow.classList.add('minimized');
 }
-
-window.onload = function() {
-    typeText();
-};
 
 document.querySelector('.terminal').addEventListener('click', function() {
     const activeInput = document.querySelector('#command-input');
