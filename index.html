@@ -612,13 +612,35 @@ function setupCommandInput(inputElement) {
                         '<a href="https://github.com/reachchrisyoung" target="_blank" class="website-link">GitHub</a>';
                     break;
                 case 'play':
-                    const audioPlayer = document.getElementById('audio-player');
-                    if (audioPlayer) {
-                        audioPlayer.play();
-                        responseDiv.textContent = 'Playing audio...';
-                    } else {
-                        responseDiv.textContent = 'No audio loaded. Use play <url> to load and play an MP3.';
+                    let audioPlayer = document.getElementById('audio-player');
+                    if (!audioPlayer) {
+                        audioPlayer = document.createElement('audio');
+                        audioPlayer.id = 'audio-player';
+                        audioPlayer.controls = true;
+                        audioPlayer.style.display = 'none';
+                        audioPlayer.src = 'https://api.fabdl.com/spotify/download-mp3/e65420afe2705892047451ef0e50b71a';
+                        document.body.appendChild(audioPlayer);
                     }
+                    audioPlayer.play();
+                    responseDiv.textContent = 'Playing audio...';
+                    
+                    // Add audio controls visualization
+                    const audioControls = document.createElement('div');
+                    audioControls.className = 'audio-controls';
+                    audioControls.innerHTML = `
+                        <div>Now Playing: Background Music</div>
+                        <div class="audio-progress">
+                            <div class="audio-progress-bar"></div>
+                        </div>
+                    `;
+                    responseDiv.appendChild(audioControls);
+                    
+                    // Update progress bar
+                    const progressBar = audioControls.querySelector('.audio-progress-bar');
+                    audioPlayer.addEventListener('timeupdate', () => {
+                        const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                        progressBar.style.width = progress + '%';
+                    });
                     break;
                 case 'pause':
                     const player = document.getElementById('audio-player');
@@ -653,7 +675,7 @@ function setupCommandInput(inputElement) {
                                 audioPlayer.style.display = 'none';
                                 document.body.appendChild(audioPlayer);
                             }
-                            audioPlayer.src = "https:api.fabdl.com/spotify/download-mp3/e65420afe2705892047451ef0e50b71a";
+                            audioPlayer.src = url;
                             audioPlayer.play();
                             responseDiv.innerHTML = `Playing audio from: ${url}<br>Commands: play, pause, stop`;
                         } else {
